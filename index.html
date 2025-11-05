@@ -1,192 +1,199 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎬 视频播放页</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #000;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-  }
-  #videoContainer {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-  }
-  video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background: #000;
-  }
-  #loading {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: #aaa;
-    transition: opacity 0.5s;
-  }
-  #cover {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    cursor: pointer;
-  }
-  #qrOverlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
-    color: #fff;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    animation: fadeIn 0.8s ease forwards;
-  }
-  #qrOverlay img {
-    width: 220px;
-    height: 220px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    animation: pulse 2s infinite;
-  }
-  #qrOverlay p {
-    margin-bottom: 12px;
-    font-size: 16px;
-    color: #ccc;
-    text-align: center;
-  }
-  #qrOverlay button {
-    background: #00c853;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: not-allowed;
-    color: #fff;
-    opacity: 0.5;
-    transition: all 0.3s;
-  }
-  #qrOverlay button.active {
-    cursor: pointer;
-    opacity: 1;
-  }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信链接跳转提示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            width: 60px;
+            height: 60px;
+            background-color: #07C160;
+            border-radius: 10px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .domain {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        
+        .warning {
+            color: #ff6b35;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .warning-icon {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+        
+        .description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .cancel {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        
+        .allow {
+            background-color: #07C160;
+            color: white;
+        }
+        
+        .button:active {
+            opacity: 0.8;
+            transform: scale(0.98);
+        }
+        
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            padding: 20px 0;
+        }
+    </style>
 </head>
 <body>
-<div id="videoContainer">
-  <div id="loading">正在加载视频...</div>
-  <video id="video" controls playsinline webkit-playsinline></video>
-  <img id="cover" />
-  <div id="qrOverlay">
-    <img src="qr.jpg" alt="分享二维码">
-    <p id="countdown">请将此二维码分享到微信群或好友<br>10 秒后可点击解锁</p>
-    <button id="sharedBtn" disabled>我已分享</button>
-  </div>
-</div>
+    <div class="status-bar">
+        <span>中国联通</span>
+        <span>01:48</span>
+    </div>
+    
+    <div class="header">
+        <div class="logo">微</div>
+        <div class="title">微信</div>
+        <div class="subtitle">安全支付</div>
+    </div>
+    
+    <div class="card">
+        <div class="domain">csl0e.csl0e.tssgsyjs.com</div>
+        <div class="warning">
+            <span class="warning-icon">⚠️</span>
+            非微信官方网页，由csl0e.csl0e.tssgsyjs.com提供
+        </div>
+        <div class="description">
+            网页由csl0e.csl0e.tssgsyjs.com提供，<span style="color: #07C160;">微信</span>对其内容概不负责。请注意保护个人信息安全。
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="warning">
+            <span class="warning-icon">⚠️</span>
+            即将离开微信，在浏览器打开
+        </div>
+        <div class="description">
+            点击"允许"将在浏览器中打开此网页，请注意保护个人信息安全。
+        </div>
+    </div>
+    
+    <div class="button-container">
+        <div class="button cancel" id="cancelBtn">取消</div>
+        <div class="button allow" id="allowBtn">允许</div>
+    </div>
+    
+    <div class="footer">
+        腾讯公司 版权所有
+    </div>
 
-<script>
-(async function() {
-  const video = document.getElementById('video');
-  const loading = document.getElementById('loading');
-  const cover = document.getElementById('cover');
-  const qrOverlay = document.getElementById('qrOverlay');
-  const sharedBtn = document.getElementById('sharedBtn');
-  const countdownText = document.getElementById('countdown');
-
-  const res = await fetch('links.json?t=' + Date.now());
-  const data = await res.json();
-  const videos = data.videos;
-  cover.src = data.cover;
-
-  // 从本地读取数据
-  let watchedVideos = JSON.parse(localStorage.getItem('watchedVideos') || '[]'); // 已看过的视频索引
-  let unlocked = localStorage.getItem('unlockAfterShare') === 'true'; // 当前是否已解锁阶段
-  let current = parseInt(localStorage.getItem('videoIndex') || 0);
-
-  cover.onclick = () => {
-    cover.style.display = 'none';
-    playVideo();
-  };
-
-  function playVideo() {
-    if (current >= videos.length) current = 0;
-    const src = videos[current];
-    video.src = src;
-    loading.style.display = 'flex';
-    video.load();
-
-    video.oncanplay = () => {
-      loading.style.display = 'none';
-      video.play().catch(()=>{});
-    };
-
-    video.onplay = () => {
-      // 如果此视频没看过，则加入 watchedVideos
-      if (!watchedVideos.includes(current)) {
-        watchedVideos.push(current);
-        localStorage.setItem('watchedVideos', JSON.stringify(watchedVideos));
-
-        // 每看 3 个新视频 → 强制分享
-        const newVideosSinceLastShare = watchedVideos.length % 3;
-        if (newVideosSinceLastShare === 0 && !unlocked) {
-          video.pause();
-          showShareOverlay();
-        }
-      }
-    };
-
-    video.onended = () => {
-      current++;
-      localStorage.setItem('videoIndex', current);
-      playVideo();
-    };
-  }
-
-  function showShareOverlay() {
-    qrOverlay.style.display = 'flex';
-    sharedBtn.disabled = true;
-    sharedBtn.classList.remove('active');
-    unlocked = false;
-    localStorage.setItem('unlockAfterShare', 'false');
-    let timeLeft = 10;
-    countdownText.innerHTML = `请将此二维码分享到微信群或好友<br>${timeLeft} 秒后可点击解锁`;
-
-    const timer = setInterval(() => {
-      timeLeft--;
-      countdownText.innerHTML = `请将此二维码分享到微信群或好友<br>${timeLeft} 秒后可点击解锁`;
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        sharedBtn.disabled = false;
-        sharedBtn.classList.add('active');
-        countdownText.innerHTML = `请点击“我已分享”按钮以继续播放`;
-      }
-    }, 1000);
-  }
-
-  sharedBtn.onclick = () => {
-    if (sharedBtn.disabled) return;
-    qrOverlay.style.display = 'none';
-    unlocked = true;
-    localStorage.setItem('unlockAfterShare', 'true');
-    playVideo();
-  };
-})();
-</script>
+    <script>
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            alert('已取消打开链接');
+            // 在实际使用中，这里可以关闭窗口或返回上一页
+        });
+        
+        document.getElementById('allowBtn').addEventListener('click', function() {
+            // 在实际使用中，这里应该跳转到目标链接
+            // window.location.href = 'https://csl0e.csl0e.tssgsyjs.com';
+            alert('正在打开链接...');
+            // 模拟跳转延迟
+            setTimeout(function() {
+                // 这里应该跳转到实际的目标链接
+                // window.location.href = 'https://tech-de.github.io/from2';
+                alert('已跳转到目标链接');
+            }, 500);
+        });
+    </script>
 </body>
 </html>
