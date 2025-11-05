@@ -217,12 +217,82 @@
             margin-top: 15px;
             cursor: pointer;
         }
+        
+        /* 复制链接提示样式 */
+        .copy-tip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .copy-tip.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .copy-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        .copy-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .copy-url {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        
+        .copy-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .copy-button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .copy-cancel {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        
+        .copy-confirm {
+            background-color: #07C160;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="status-bar">
         <span>中国联通</span>
-        <span>02:09</span>
+        <span id="currentTime">02:09</span>
     </div>
     
     <div class="header">
@@ -232,7 +302,7 @@
     </div>
     
     <div class="card">
-        <div class="domain">csl0e.csl0e.tssgsyjs.com</div>
+        <div class="domain" id="targetDomain">csl0e.csl0e.tssgsyjs.com</div>
         <div class="warning">
             <span class="warning-icon">⚠️</span>
             非微信官方网页，由csl0e.csl0e.tssgsyjs.com提供
@@ -303,6 +373,18 @@
         </div>
     </div>
 
+    <!-- 复制链接提示 -->
+    <div class="copy-tip" id="copyTip">
+        <div class="copy-container">
+            <div class="copy-title">复制链接</div>
+            <div class="copy-url" id="copyUrl">https://csl0e.csl0e.tssgsyjs.com</div>
+            <div class="copy-buttons">
+                <div class="copy-button copy-cancel" id="copyCancel">取消</div>
+                <div class="copy-button copy-confirm" id="copyConfirm">复制</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 获取DOM元素
         const cancelBtn = document.getElementById('cancelBtn');
@@ -310,20 +392,70 @@
         const browserSelection = document.getElementById('browserSelection');
         const closeBrowserSelection = document.getElementById('closeBrowserSelection');
         const browserItems = document.querySelectorAll('.browser-item');
+        const copyTip = document.getElementById('copyTip');
+        const copyCancel = document.getElementById('copyCancel');
+        const copyConfirm = document.getElementById('copyConfirm');
+        const copyUrl = document.getElementById('copyUrl');
+        const currentTime = document.getElementById('currentTime');
         
         // 目标链接
-        const targetUrl = 'https://tech-de.github.io/from2';
+        const targetUrl = 'https://csl0e.csl0e.tssgsyjs.com';
+        
+        // 更新当前时间
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            currentTime.textContent = `${hours}:${minutes}`;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
         
         // 点击取消按钮
         cancelBtn.addEventListener('click', function() {
-            alert('已取消打开链接');
             // 在实际使用中，这里可以关闭窗口或返回上一页
+            // 由于微信限制，我们无法直接关闭，所以显示提示
+            alert('已取消打开链接');
         });
         
         // 点击允许按钮，显示浏览器选择界面
         allowBtn.addEventListener('click', function() {
-            browserSelection.classList.add('active');
+            // 尝试直接跳转（在部分安卓设备上可能有效）
+            const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+            
+            if (isWeChat) {
+                // 在微信中，尝试多种跳转方式
+                tryDirectOpen();
+            } else {
+                // 不在微信中，直接跳转
+                window.location.href = targetUrl;
+            }
         });
+        
+        // 尝试直接打开链接（多种方法）
+        function tryDirectOpen() {
+            // 方法1: 直接跳转（在某些安卓微信版本中可能有效）
+            window.location.href = targetUrl;
+            
+            // 方法2: 使用iframe跳转（在某些情况下可能绕过限制）
+            setTimeout(function() {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = targetUrl;
+                document.body.appendChild(iframe);
+                
+                // 方法3: 显示复制链接提示
+                setTimeout(function() {
+                    showCopyTip();
+                }, 1000);
+            }, 500);
+        }
+        
+        // 显示复制链接提示
+        function showCopyTip() {
+            copyTip.classList.add('active');
+        }
         
         // 关闭浏览器选择界面
         closeBrowserSelection.addEventListener('click', function() {
@@ -341,31 +473,60 @@
         
         // 根据选择的浏览器打开链接
         function openInBrowser(browser) {
-            // 在实际使用中，这里应该跳转到目标链接
-            // window.location.href = targetUrl;
-            
-            // 模拟跳转延迟
-            setTimeout(function() {
-                // 这里应该跳转到实际的目标链接
-                // window.location.href = targetUrl;
-                alert(`正在使用${getBrowserName(browser)}打开链接...`);
-            }, 500);
+            // 显示复制链接提示
+            showCopyTip();
         }
         
-        // 获取浏览器名称
-        function getBrowserName(browser) {
-            const browserNames = {
-                'system': '系统浏览器',
-                'wps': 'WPS Office',
-                'edge': 'Microsoft Edge',
-                'jd': '京东',
-                'taobao': '淘宝',
-                'chrome': 'Chrome',
-                'firefox': 'Firefox',
-                'safari': 'Safari'
-            };
+        // 关闭复制提示
+        copyCancel.addEventListener('click', function() {
+            copyTip.classList.remove('active');
+        });
+        
+        // 复制链接
+        copyConfirm.addEventListener('click', function() {
+            // 使用现代剪贴板API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(targetUrl).then(function() {
+                    alert('链接已复制到剪贴板，请粘贴到浏览器中打开');
+                    copyTip.classList.remove('active');
+                }).catch(function() {
+                    fallbackCopyTextToClipboard(targetUrl);
+                });
+            } else {
+                fallbackCopyTextToClipboard(targetUrl);
+            }
+        });
+        
+        // 兼容旧浏览器的复制方法
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = 0;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
             
-            return browserNames[browser] || '浏览器';
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('链接已复制到剪贴板，请粘贴到浏览器中打开');
+                } else {
+                    alert('复制失败，请手动复制链接: ' + text);
+                }
+            } catch (err) {
+                alert('复制失败，请手动复制链接: ' + text);
+            }
+            
+            document.body.removeChild(textArea);
+            copyTip.classList.remove('active');
+        }
+        
+        // 尝试使用应用宝微下载（腾讯官方方法）
+        function tryWeDownload() {
+            // 这是腾讯官方推荐的在微信中跳转外部浏览器的方法
+            // 需要配置应用宝微下载
+            window.location.href = 'https://a.app.qq.com/o/simple.jsp?pkgname=com.example.app';
         }
     </script>
 </body>
