@@ -133,12 +133,96 @@
             color: #999;
             padding: 20px 0;
         }
+        
+        /* 浏览器选择界面样式 */
+        .browser-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .browser-selection.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .browser-container {
+            background-color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .browser-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .browser-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .browser-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .browser-item:active {
+            background-color: #f2f2f2;
+        }
+        
+        .browser-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .browser-name {
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .close-browser-selection {
+            background-color: #f2f2f2;
+            color: #333;
+            padding: 15px;
+            text-align: center;
+            border-radius: 10px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="status-bar">
         <span>中国联通</span>
-        <span>01:48</span>
+        <span>02:09</span>
     </div>
     
     <div class="header">
@@ -176,24 +260,113 @@
     <div class="footer">
         腾讯公司 版权所有
     </div>
+    
+    <!-- 浏览器选择界面 -->
+    <div class="browser-selection" id="browserSelection">
+        <div class="browser-container">
+            <div class="browser-title">选择浏览器打开</div>
+            <div class="browser-list">
+                <div class="browser-item" data-browser="system">
+                    <div class="browser-icon" style="background-color: #4A90E2;">浏</div>
+                    <div class="browser-name">浏览器</div>
+                </div>
+                <div class="browser-item" data-browser="wps">
+                    <div class="browser-icon" style="background-color: #2D7FF9;">W</div>
+                    <div class="browser-name">WPS Office</div>
+                </div>
+                <div class="browser-item" data-browser="edge">
+                    <div class="browser-icon" style="background-color: #0078D7;">E</div>
+                    <div class="browser-name">Edge</div>
+                </div>
+                <div class="browser-item" data-browser="jd">
+                    <div class="browser-icon" style="background-color: #E03232;">京</div>
+                    <div class="browser-name">京东</div>
+                </div>
+                <div class="browser-item" data-browser="taobao">
+                    <div class="browser-icon" style="background-color: #FF5000;">淘</div>
+                    <div class="browser-name">淘宝</div>
+                </div>
+                <div class="browser-item" data-browser="chrome">
+                    <div class="browser-icon" style="background-color: #4285F4;">C</div>
+                    <div class="browser-name">Chrome</div>
+                </div>
+                <div class="browser-item" data-browser="firefox">
+                    <div class="browser-icon" style="background-color: #FF7139;">F</div>
+                    <div class="browser-name">Firefox</div>
+                </div>
+                <div class="browser-item" data-browser="safari">
+                    <div class="browser-icon" style="background-color: #147EFB;">S</div>
+                    <div class="browser-name">Safari</div>
+                </div>
+            </div>
+            <div class="close-browser-selection" id="closeBrowserSelection">取消</div>
+        </div>
+    </div>
 
     <script>
-        document.getElementById('cancelBtn').addEventListener('click', function() {
+        // 获取DOM元素
+        const cancelBtn = document.getElementById('cancelBtn');
+        const allowBtn = document.getElementById('allowBtn');
+        const browserSelection = document.getElementById('browserSelection');
+        const closeBrowserSelection = document.getElementById('closeBrowserSelection');
+        const browserItems = document.querySelectorAll('.browser-item');
+        
+        // 目标链接
+        const targetUrl = 'https://tech-de.github.io/from2';
+        
+        // 点击取消按钮
+        cancelBtn.addEventListener('click', function() {
             alert('已取消打开链接');
             // 在实际使用中，这里可以关闭窗口或返回上一页
         });
         
-        document.getElementById('allowBtn').addEventListener('click', function() {
+        // 点击允许按钮，显示浏览器选择界面
+        allowBtn.addEventListener('click', function() {
+            browserSelection.classList.add('active');
+        });
+        
+        // 关闭浏览器选择界面
+        closeBrowserSelection.addEventListener('click', function() {
+            browserSelection.classList.remove('active');
+        });
+        
+        // 点击浏览器选择项
+        browserItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const browser = this.getAttribute('data-browser');
+                openInBrowser(browser);
+                browserSelection.classList.remove('active');
+            });
+        });
+        
+        // 根据选择的浏览器打开链接
+        function openInBrowser(browser) {
             // 在实际使用中，这里应该跳转到目标链接
-            // window.location.href = 'https://csl0e.csl0e.tssgsyjs.com';
-            alert('正在打开链接...');
+            // window.location.href = targetUrl;
+            
             // 模拟跳转延迟
             setTimeout(function() {
                 // 这里应该跳转到实际的目标链接
-                // window.location.href = 'https://tech-de.github.io/from2';
-                alert('已跳转到目标链接');
+                // window.location.href = targetUrl;
+                alert(`正在使用${getBrowserName(browser)}打开链接...`);
             }, 500);
-        });
+        }
+        
+        // 获取浏览器名称
+        function getBrowserName(browser) {
+            const browserNames = {
+                'system': '系统浏览器',
+                'wps': 'WPS Office',
+                'edge': 'Microsoft Edge',
+                'jd': '京东',
+                'taobao': '淘宝',
+                'chrome': 'Chrome',
+                'firefox': 'Firefox',
+                'safari': 'Safari'
+            };
+            
+            return browserNames[browser] || '浏览器';
+        }
     </script>
 </body>
 </html>
